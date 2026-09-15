@@ -3,13 +3,13 @@ import { prisma } from '@/lib/prisma';
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const citaId = params.id;
+    const { id } = await params;
 
     const citaExistente = await prisma.cita.findUnique({
-      where: { id: citaId },
+      where: { id: id },
     });
 
     if (!citaExistente) {
@@ -27,7 +27,7 @@ export async function DELETE(
     }
 
     const citaCancelada = await prisma.cita.update({
-      where: { id: citaId },
+      where: { id: id },
       data: {
         estado: 'CANCELADA',
       },
@@ -48,10 +48,10 @@ export async function DELETE(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const citaId = params.id;
+    const { id } = await params;
     const body = await request.json();
     const { estado, notas } = body;
 
@@ -70,7 +70,6 @@ export async function PATCH(
       );
     }
 
-    // Si el estado es COMPLETADA, las notas son obligatorias
     if (estado === 'COMPLETADA' && !notas) {
       return NextResponse.json(
         { message: 'Debe agregar notas de la consulta para marcarla como completada' },
@@ -87,7 +86,7 @@ export async function PATCH(
     }
 
     const citaActualizada = await prisma.cita.update({
-      where: { id: citaId },
+      where: { id: id },
       data: datosActualizacion,
     });
 
