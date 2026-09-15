@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id              String    @id @default(cuid())
+  correo          String    @unique
+  contrasena      String
+  tipoDocumento   String
+  numeroDocumento String    @unique
+  nombre          String
+  apellido        String
+  telefono        String
+  rol             String    @default("PACIENTE")
+  activo          Boolean   @default(true)
+  creadoEn        DateTime  @default(now())
+  actualizadoEn   DateTime  @updatedAt
+  
+  paciente        Paciente?
+  medico          Medico?
+}
+
+model Paciente {
+  id                 String    @id @default(cuid())
+  usuarioId          String    @unique
+  usuario            Usuario   @relation(fields: [usuarioId], references: [id])
+  fechaNacimiento    DateTime
+  genero             String
+  direccion          String
+  ciudad             String
+  departamento       String
+  eps                String?
+  tipoSangre         String?
+  contactoEmergencia String?
+  citas              Cita[]
+  creadoEn           DateTime  @default(now())
+  actualizadoEn      DateTime  @updatedAt
+}
+
+model Medico {
+  id               String    @id @default(cuid())
+  usuarioId        String    @unique
+  usuario          Usuario   @relation(fields: [usuarioId], references: [id])
+  numeroLicencia   String    @unique
+  especialidad     String
+  tiempoConsulta   Int       @default(30)
+  activo           Boolean   @default(true)
+  citas            Cita[]
+  creadoEn         DateTime  @default(now())
+  actualizadoEn    DateTime  @updatedAt
+}
+
+model Cita {
+  id           String    @id @default(cuid())
+  pacienteId   String
+  paciente     Paciente  @relation(fields: [pacienteId], references: [id])
+  medicoId     String
+  medico       Medico    @relation(fields: [medicoId], references: [id])
+  fechaCita    DateTime
+  horaInicio   String
+  horaFin      String
+  estado       String    @default("PROGRAMADA")
+  tipo         String    @default("PRESENCIAL")
+  motivo       String?
+  notas        String?
+  canceladoEn  DateTime?
+  creadoEn     DateTime  @default(now())
+  actualizadoEn DateTime  @updatedAt
+}
